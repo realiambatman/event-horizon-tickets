@@ -1,8 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
 
-// Initialize Gemini
-// Note: API Key should be in process.env.API_KEY
-// If not present, we will fallback to mock data gracefully in the UI.
 const apiKey = process.env.API_KEY || '';
 let ai: GoogleGenAI | null = null;
 

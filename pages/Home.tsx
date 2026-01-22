@@ -44,8 +44,8 @@ const Home: React.FC<HomeProps> = ({ events, onEventSelect }) => {
           </h1>
         </div>
 
-        <div className="z-10 max-w-5xl">
-          <RevealText className="text-6xl md:text-8xl lg:text-9xl font-display font-bold text-slate-900 tracking-tighter leading-[0.9] mb-8">
+        <div className="z-10 max-w-5xl pt-20 md:pt-0">
+          <RevealText className="text-5xl md:text-8xl lg:text-9xl font-display font-bold text-slate-900 tracking-tighter leading-[0.9] mb-6 md:mb-8">
             EXPERIENCE <br /> THE UNFORGETTABLE
           </RevealText>
           
@@ -55,7 +55,7 @@ const Home: React.FC<HomeProps> = ({ events, onEventSelect }) => {
             transition={{ delay: 0.8, duration: 0.8 }}
             className="flex flex-col md:flex-row gap-8 items-start md:items-center max-w-2xl"
           >
-            <p className="text-lg md:text-xl text-slate-500 font-light leading-relaxed">
+            <p className="text-base md:text-xl text-slate-500 font-light leading-relaxed max-w-sm md:max-w-none">
               Curating the world's most immersive events. From underground neon symphonies to floating art galas.
             </p>
             <motion.button 
@@ -65,7 +65,7 @@ const Home: React.FC<HomeProps> = ({ events, onEventSelect }) => {
                 const el = document.getElementById('featured');
                 el?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="bg-slate-900 text-white px-8 py-4 rounded-full font-medium text-sm tracking-wide hover:bg-indigo-600 transition-colors duration-300 whitespace-nowrap"
+              className="bg-slate-900 text-white px-8 py-4 rounded-full font-medium text-sm tracking-wide hover:bg-indigo-600 transition-colors duration-300 whitespace-nowrap w-full md:w-auto"
             >
               EXPLORE EVENTS
             </motion.button>

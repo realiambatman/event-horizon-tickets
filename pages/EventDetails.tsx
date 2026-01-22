@@ -1,29 +1,41 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Event, TicketTier } from '../types';
-import { TICKET_TIERS } from '../constants';
+import { TICKET_TIERS, MOCK_EVENTS } from '../constants';
 import { Card, Button, Badge } from '../components/UI';
 import { ArrowLeft, Clock, MapPin, Users, CheckCircle, Download, CreditCard, Ticket, IndianRupee } from 'lucide-react';
 import { generateEventHype } from '../services/geminiService';
 
-interface EventDetailsProps {
-  event: Event;
-  onBack: () => void;
-}
-
-const EventDetails: React.FC<EventDetailsProps> = ({ event, onBack }) => {
+const EventDetails: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [event, setEvent] = useState<Event | null>(null);
   const [hypeText, setHypeText] = useState<string>('Loading description...');
   const [selectedTier, setSelectedTier] = useState<TicketTier>(TICKET_TIERS[0]);
   const [quantity, setQuantity] = useState(1);
   const [paymentStep, setPaymentStep] = useState<'select' | 'payment' | 'success'>('select');
 
   useEffect(() => {
-    let isMounted = true;
-    generateEventHype(event.title, event.description).then(text => {
-      if (isMounted) setHypeText(text);
-    });
-    return () => { isMounted = false; };
+    const foundEvent = MOCK_EVENTS.find(e => e.id === id);
+    if (foundEvent) {
+      setEvent(foundEvent);
+    } else {
+      navigate('/'); // Redirect to home if event not found
+    }
+  }, [id, navigate]);
+
+  useEffect(() => {
+    if (event) {
+      let isMounted = true;
+      generateEventHype(event.title, event.description).then(text => {
+        if (isMounted) setHypeText(text);
+      });
+      return () => { isMounted = false; };
+    }
   }, [event]);
+
+  if (!event) return null;
 
   const totalPrice = event.price * selectedTier.price * quantity;
 
@@ -39,30 +51,30 @@ const EventDetails: React.FC<EventDetailsProps> = ({ event, onBack }) => {
       initial={{ opacity: 0, y: 20 }} 
       animate={{ opacity: 1, y: 0 }} 
       exit={{ opacity: 0 }}
-      className="max-w-7xl mx-auto px-4 lg:px-0"
+      className="max-w-7xl mx-auto px-0 lg:px-0 pt-8 lg:pt-0"
     >
       <div className="mb-8">
-        <button onClick={onBack} className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors group">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors group">
           <div className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center group-hover:bg-slate-200 transition-colors">
             <ArrowLeft size={14} />
           </div>
-          <span className="text-sm font-medium">Back to Events</span>
+          <span className="text-sm font-medium">Back</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
         
         {/* Left: Visuals & Info */}
-        <div className="lg:col-span-8 space-y-12">
+        <div className="lg:col-span-8 space-y-8 lg:space-y-12">
           {/* Header */}
           <div>
-            <div className="flex gap-2 mb-6">
+            <div className="flex flex-wrap gap-2 mb-6">
               {event.tags.map(tag => (
                 <span key={tag} className="px-3 py-1 rounded-full border border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-600">{tag}</span>
               ))}
             </div>
-            <h1 className="text-5xl md:text-7xl font-display font-bold text-slate-900 tracking-tight leading-[1] mb-6">{event.title}</h1>
-            <p className="text-xl md:text-2xl text-slate-500 font-light leading-relaxed max-w-2xl">{hypeText}</p>
+            <h1 className="text-4xl md:text-5xl lg:text-7xl font-display font-bold text-slate-900 tracking-tight leading-[1] mb-6">{event.title}</h1>
+            <p className="text-lg md:text-xl lg:text-2xl text-slate-500 font-light leading-relaxed max-w-2xl">{hypeText}</p>
           </div>
 
           {/* Hero Image */}
@@ -211,7 +223,7 @@ const EventDetails: React.FC<EventDetailsProps> = ({ event, onBack }) => {
                      </div>
                   </div>
 
-                  <Button onClick={() => onBack()} variant="secondary" fullWidth className="py-4">
+                  <Button onClick={() => navigate(-1)} variant="secondary" fullWidth className="py-4">
                      <Download size={18} className="inline mr-2" /> Download Ticket
                   </Button>
                 </motion.div>
