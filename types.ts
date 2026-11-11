@@ -1,10 +1,14 @@
+export type PosterArtKind = 'rays' | 'grid' | 'rings' | 'stripes';
+export type PosterTone = 'coral' | 'paper' | 'violet' | 'volt';
+
 export interface Event {
   id: string;
   title: string;
   date: string;
   time: string;
   location: string;
-  image: string;
+  /** Drawn poster artwork: which motif and which ink set. */
+  poster: { art: PosterArtKind; tone: PosterTone };
   price: number;
   category: string;
   description: string;
@@ -20,4 +24,3 @@ export interface TicketTier {
   price: number;
   benefits: string[];
 }
-
