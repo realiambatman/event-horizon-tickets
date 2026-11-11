@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { QrCode, Calendar, Clock, MapPin, X, Share2, Download, Maximize2 } from 'lucide-react';
+import { QrCode, Calendar, Clock, MapPin, X, Share2, Download } from 'lucide-react';
 import { MOCK_EVENTS } from '../constants';
 import { Button } from '../components/UI';
 
@@ -117,7 +117,7 @@ const TicketCard: React.FC<{ ticket: TicketType, index: number, onExpand: () => 
 
          {/* Image Section */}
          <div className="relative h-48">
-            <img src={ticket.image} className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity" alt="Event" />
+            <img src={ticket.image} className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity" alt={ticket.title} />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
             
             <div className="absolute top-4 right-4 bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
@@ -189,7 +189,7 @@ const TicketModal: React.FC<{ ticket: TicketType, onClose: () => void }> = ({ ti
          className="relative w-full max-w-md bg-white rounded-[2.5rem] overflow-hidden shadow-2xl"
        >
           <div className="bg-slate-900 p-8 text-white text-center relative overflow-hidden">
-             <button onClick={onClose} className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors">
+             <button aria-label="Close" onClick={onClose} className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors">
                 <X size={20} />
              </button>
              

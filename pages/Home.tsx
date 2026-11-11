@@ -1,7 +1,7 @@
 import React, { useRef, useState, useMemo } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Event } from '../types';
-import { Search, SlidersHorizontal, ArrowDown } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 interface HomeProps {
   events: Event[];
@@ -85,7 +85,7 @@ const Home: React.FC<HomeProps> = ({ events, onEventSelect }) => {
               transition={{ duration: 1.2, ease: "easeOut" }}
               src="https://picsum.photos/seed/architecture/1200/1600" 
               className="object-cover w-full h-full"
-              alt="Hero" 
+              alt="" 
             />
             {/* Overlay Gradient Now Properly Clipped */}
             <div className="absolute inset-0 bg-gradient-to-r from-slate-50 via-slate-50/20 to-transparent" />
@@ -130,6 +130,7 @@ const Home: React.FC<HomeProps> = ({ events, onEventSelect }) => {
                whileHover={{ scale: 1.05 }}
                transition={{ duration: 0.7 }}
                src={events[0].image} 
+               alt={events[0].title}
                className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
              />
              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-transparent flex flex-col justify-end p-8 md:p-16">
@@ -180,6 +181,7 @@ const Home: React.FC<HomeProps> = ({ events, onEventSelect }) => {
                    value={searchQuery}
                    onChange={(e) => setSearchQuery(e.target.value)}
                    placeholder="Search events..." 
+                   aria-label="Search events" 
                    className="pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-full text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 w-full md:w-64 transition-all"
                  />
               </div>
@@ -219,15 +221,6 @@ const Home: React.FC<HomeProps> = ({ events, onEventSelect }) => {
               </div>
             )}
          </div>
-         
-         {filteredEvents.length > 0 && (
-           <div className="flex justify-center mt-16">
-              <button className="flex flex-col items-center gap-2 text-slate-400 hover:text-indigo-600 transition-colors">
-                 <span className="text-xs font-bold uppercase tracking-widest">Load More</span>
-                 <ArrowDown size={20} className="animate-bounce" />
-              </button>
-           </div>
-         )}
       </section>
 
       {/* --- CTA FOOTER --- */}
@@ -243,7 +236,9 @@ const Home: React.FC<HomeProps> = ({ events, onEventSelect }) => {
             <p className="text-slate-400 text-xl max-w-2xl mx-auto mb-10">
               Join thousands of others discovering the next big experience.
             </p>
-            <button className="bg-white text-slate-900 px-10 py-4 rounded-full font-bold text-lg hover:bg-indigo-500 hover:text-white transition-all duration-300 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]">
+            <button
+              onClick={() => document.getElementById('featured')?.scrollIntoView({ behavior: 'smooth' })}
+              className="bg-white text-slate-900 px-10 py-4 rounded-full font-bold text-lg hover:bg-indigo-500 hover:text-white transition-all duration-300 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]">
               Start Your Journey
             </button>
           </motion.div>
@@ -325,6 +320,7 @@ const EventListItem: React.FC<EventListItemProps> = ({ event, onClick, index }) 
       {/* Hover Image Reveal */}
       <motion.img 
         src={event.image}
+        alt=""
         initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
         whileHover={{ opacity: 1, scale: 1, rotate: 0 }}
         transition={{ duration: 0.4 }}
