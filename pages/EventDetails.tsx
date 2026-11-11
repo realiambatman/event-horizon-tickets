@@ -1,15 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Event, TicketTier } from '../types';
 import { TICKET_TIERS, MOCK_EVENTS } from '../constants';
 import { Button } from '../components/UI';
-import { ArrowLeft, Clock, MapPin, CheckCircle, CreditCard, Ticket } from 'lucide-react';
+import { EventPoster } from '../components/EventPoster';
+import { Ticket } from '../components/Ticket';
+import { ArrowLeft, Check, Minus, Plus } from 'lucide-react';
 import { generateEventHype } from '../services/geminiService';
 
 interface EventDetailsProps {
   userEmail?: string;
 }
+
+const inr = (amount: number) => `₹${amount.toLocaleString('en-IN')}`;
 
 const EventDetails: React.FC<EventDetailsProps> = ({ userEmail }) => {
   const { id } = useParams<{ id: string }>();
@@ -45,6 +48,8 @@ const EventDetails: React.FC<EventDetailsProps> = ({ userEmail }) => {
   if (!event) return null;
 
   const totalPrice = event.price * selectedTier.price * quantity;
+  const soldPct = Math.round((event.sold / event.capacity) * 100);
+  const remaining = event.capacity - event.sold;
 
   // Simulated payment: no real gateway is involved.
   const handlePurchase = () => {
@@ -55,197 +60,189 @@ const EventDetails: React.FC<EventDetailsProps> = ({ userEmail }) => {
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }} 
-      animate={{ opacity: 1, y: 0 }} 
-      exit={{ opacity: 0 }}
-      className="max-w-7xl mx-auto px-0 lg:px-0 pt-8 lg:pt-0"
-    >
-      <div className="mb-8">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors group">
-          <div className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center group-hover:bg-slate-200 transition-colors">
-            <ArrowLeft size={14} />
-          </div>
-          <span className="text-sm font-medium">Back</span>
-        </button>
-      </div>
+    <div>
+      <button
+        type="button"
+        onClick={() => navigate(-1)}
+        className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-mute transition-colors hover:text-paper"
+      >
+        <ArrowLeft size={16} aria-hidden="true" />
+        Back
+      </button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
-        
-        {/* Left: Visuals & Info */}
-        <div className="lg:col-span-8 space-y-8 lg:space-y-12">
-          {/* Header */}
-          <div>
-            <div className="flex flex-wrap gap-2 mb-6">
-              {event.tags.map(tag => (
-                <span key={tag} className="px-3 py-1 rounded-full border border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-600">{tag}</span>
-              ))}
-            </div>
-            <h1 className="text-4xl md:text-5xl lg:text-7xl font-display font-bold text-slate-900 tracking-tight leading-[1] mb-6">{event.title}</h1>
-            <p className="text-lg md:text-xl lg:text-2xl text-slate-500 font-light leading-relaxed max-w-2xl">{hypeText}</p>
-          </div>
+      <header className="mb-10 md:mb-14">
+        <p className="mb-3 text-lg font-semibold text-coral">
+          {event.date}, {event.time} at {event.location}
+        </p>
+        <h1 className="display text-balance text-[17vw] leading-[0.82] text-paper sm:text-poster-lg lg:text-poster-xl">
+          {event.title}
+        </h1>
+      </header>
 
-          {/* Hero Image */}
-          <motion.div 
-            layoutId={`image-${event.id}`}
-            className="w-full aspect-video rounded-3xl overflow-hidden shadow-2xl"
-          >
-            <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
-          </motion.div>
-
-          {/* Details Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-8 border-y border-slate-200">
-             <div className="space-y-6">
-                <div className="flex items-start gap-4">
-                   <div className="bg-slate-50 p-3 rounded-xl"><Clock className="text-indigo-600" size={24} /></div>
-                   <div>
-                     <p className="text-sm text-slate-400 font-bold uppercase tracking-wider mb-1">Date & Time</p>
-                     <p className="text-lg font-medium text-slate-900">{event.date}</p>
-                     <p className="text-slate-500">{event.time} Onwards</p>
-                   </div>
-                </div>
-                <div className="flex items-start gap-4">
-                   <div className="bg-slate-50 p-3 rounded-xl"><MapPin className="text-indigo-600" size={24} /></div>
-                   <div>
-                     <p className="text-sm text-slate-400 font-bold uppercase tracking-wider mb-1">Location</p>
-                     <p className="text-lg font-medium text-slate-900">{event.location}</p>
-                     <p className="text-slate-500">Get Directions</p>
-                   </div>
-                </div>
-             </div>
-             
-             <div className="prose prose-lg prose-slate">
-                <p>
-                  Experience the ultimate {event.category.toLowerCase()} event of the year. 
-                  Curated by <strong>{event.organizer}</strong>, this event promises to be an immersive journey 
-                  unlike anything you've seen before.
-                </p>
-             </div>
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
+        {/* Poster */}
+        <div className="lg:col-span-3">
+          <div className="mx-auto max-w-[280px] -rotate-2 lg:sticky lg:top-24 lg:max-w-none">
+            <EventPoster event={event} showFooter={false} className="shadow-lift" />
           </div>
         </div>
 
-        {/* Right: Booking Panel */}
-        <div className="lg:col-span-4 relative">
-          <div className="sticky top-24">
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl shadow-slate-200/50">
-              {paymentStep === 'select' && (
-                <div className="space-y-8">
-                  <div className="flex justify-between items-baseline">
-                    <h2 className="text-2xl font-display font-bold text-slate-900">Tickets</h2>
-                    <span className="text-emerald-600 text-sm font-bold bg-emerald-50 px-2 py-1 rounded">Available</span>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    {TICKET_TIERS.map(tier => (
-                      <button 
+        {/* Info */}
+        <div className="order-3 lg:order-none lg:col-span-5">
+          <p className="max-w-[60ch] text-xl leading-relaxed text-paper md:text-2xl md:leading-relaxed">{hypeText}</p>
+
+          <ul className="mt-6 flex flex-wrap gap-2" aria-label="Tags">
+            {event.tags.map(tag => (
+              <li key={tag} className="rounded-stock border border-ink-500 px-3 py-1 text-sm font-medium text-paper-dim">{tag}</li>
+            ))}
+          </ul>
+
+          <dl className="mt-10 grid grid-cols-2 border-t border-ink-600">
+            <Fact label="Date" value={event.date} />
+            <Fact label="Doors" value={`${event.time} onwards`} />
+            <Fact label="Venue" value={event.location} />
+            <Fact label="Presented by" value={event.organizer} />
+          </dl>
+
+          <div className="mt-8">
+            <div className="mb-2 flex items-baseline justify-between text-sm">
+              <span className="font-semibold text-paper">{soldPct}% sold</span>
+              <span className="text-mute">{remaining.toLocaleString('en-IN')} of {event.capacity.toLocaleString('en-IN')} left</span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-ink-700" role="presentation">
+              <div className={`h-full ${soldPct >= 90 ? 'bg-coral' : 'bg-paper'}`} style={{ width: `${soldPct}%` }} />
+            </div>
+          </div>
+
+          <p className="mt-10 max-w-[60ch] leading-relaxed text-mute">
+            Experience the ultimate {event.category.toLowerCase()} event of the year.
+            Curated by <strong className="font-semibold text-paper">{event.organizer}</strong>, this event promises to be an immersive journey
+            unlike anything you've seen before.
+          </p>
+        </div>
+
+        {/* Booking Panel */}
+        <div className="order-2 lg:order-none lg:col-span-4">
+          <div className="lg:sticky lg:top-24">
+            {paymentStep === 'select' && (
+              <div className="panel p-5 md:p-6">
+                <div className="mb-5 flex items-baseline justify-between">
+                  <h2 className="display text-4xl leading-none text-paper">Tickets</h2>
+                  <span className="text-sm font-semibold text-volt">Available</span>
+                </div>
+
+                <div className="space-y-3" role="group" aria-label="Ticket tier">
+                  {TICKET_TIERS.map(tier => {
+                    const selected = selectedTier.id === tier.id;
+                    return (
+                      <button
                         type="button"
                         key={tier.id}
-                        aria-pressed={selectedTier.id === tier.id}
+                        aria-pressed={selected}
                         onClick={() => setSelectedTier(tier)}
-                        className={`group relative w-full text-left p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${
-                          selectedTier.id === tier.id 
-                            ? 'bg-slate-50 border-indigo-600' 
-                            : 'bg-white border-slate-100 hover:border-slate-300'
+                        className={`relative w-full rounded-stock border py-4 pl-5 pr-4 text-left transition-colors ${
+                          selected
+                            ? 'border-volt bg-ink-950'
+                            : 'border-ink-600 hover:border-ink-500 hover:bg-ink-700/50'
                         }`}
                       >
-                        <div className="flex justify-between items-center mb-2">
-                          <span className={`font-bold ${selectedTier.id === tier.id ? 'text-indigo-900' : 'text-slate-900'}`}>{tier.name}</span>
-                          <span className="font-display font-bold text-lg text-slate-900">
-                             ₹{(event.price * tier.price).toLocaleString('en-IN')}
+                        <span aria-hidden="true" className={`absolute inset-y-0 left-0 w-1.5 ${selected ? 'bg-volt' : 'bg-transparent'}`} />
+                        <span className="flex items-baseline justify-between gap-3">
+                          <span className="flex items-center gap-2 font-bold text-paper">
+                            {tier.name}
+                            {selected && <Check size={16} className="text-volt" aria-hidden="true" />}
                           </span>
-                        </div>
-                        <p className="text-sm text-slate-500">{tier.benefits.join(" • ")}</p>
-                        
-                        {selectedTier.id === tier.id && (
-                          <div className="absolute -right-2 -top-2 bg-indigo-600 text-white p-1 rounded-full">
-                            <CheckCircle size={14} />
-                          </div>
-                        )}
+                          <span className="font-display text-2xl font-black leading-none text-paper">
+                            {inr(event.price * tier.price)}
+                          </span>
+                        </span>
+                        <span className="mt-1.5 block text-sm leading-relaxed text-mute">{tier.benefits.join(', ')}</span>
                       </button>
-                    ))}
-                  </div>
+                    );
+                  })}
+                </div>
 
-                  <div className="flex items-center justify-between py-4 border-t border-slate-100">
-                    <span className="font-medium text-slate-700">Quantity</span>
-                    <div className="flex items-center gap-4 bg-slate-50 rounded-full p-1">
-                      <button aria-label="Decrease quantity" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-600 hover:text-indigo-600">-</button>
-                      <span className="font-bold w-4 text-center text-slate-900">{quantity}</span>
-                      <button aria-label="Increase quantity" onClick={() => setQuantity(Math.min(10, quantity + 1))} className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-600 hover:text-indigo-600">+</button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center text-xl font-bold text-slate-900">
-                      <span>Total</span>
-                      <span>₹{totalPrice.toLocaleString('en-IN')}</span>
-                    </div>
-
-                    <Button onClick={handlePurchase} fullWidth className="py-4 text-lg rounded-xl bg-slate-900 hover:bg-indigo-600">
-                      Secure Tickets
-                    </Button>
+                <div className="mt-5 flex items-center justify-between border-t border-ink-600 pt-5">
+                  <span className="font-semibold text-paper">Quantity</span>
+                  <div className="flex items-center">
+                    <button
+                      type="button"
+                      aria-label="Decrease quantity"
+                      disabled={quantity <= 1}
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="flex h-11 w-11 items-center justify-center rounded-stock border border-ink-600 text-paper transition-colors hover:border-paper disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-ink-600"
+                    >
+                      <Minus size={16} />
+                    </button>
+                    <span className="w-12 text-center font-display text-3xl font-black leading-none text-paper" aria-live="polite">{quantity}</span>
+                    <button
+                      type="button"
+                      aria-label="Increase quantity"
+                      disabled={quantity >= 10}
+                      onClick={() => setQuantity(Math.min(10, quantity + 1))}
+                      className="flex h-11 w-11 items-center justify-center rounded-stock border border-ink-600 text-paper transition-colors hover:border-paper disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-ink-600"
+                    >
+                      <Plus size={16} />
+                    </button>
                   </div>
                 </div>
-              )}
 
-              {paymentStep === 'payment' && (
-                <div className="flex flex-col items-center justify-center py-20 space-y-6">
-                  <div className="relative">
-                    <div className="w-16 h-16 border-4 border-slate-100 border-t-indigo-600 rounded-full animate-spin" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                       <CreditCard className="text-slate-300" size={20} />
-                    </div>
-                  </div>
-                  <p className="text-slate-500 font-medium">Processing payment...</p>
+                <div className="mt-5 flex items-baseline justify-between border-t border-ink-600 pt-5">
+                  <span className="font-semibold text-paper">Total</span>
+                  <span className="font-display text-5xl font-black leading-none text-paper">{inr(totalPrice)}</span>
                 </div>
-              )}
 
-              {paymentStep === 'success' && (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="text-center py-8 space-y-8"
-                >
-                  <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
-                    <CheckCircle size={40} />
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-2xl font-bold text-slate-900 mb-2">You're In!</h3>
-                    <p className="text-slate-500">
-                      {userEmail ? `Receipt sent to ${userEmail}` : 'Your booking is confirmed.'}
-                    </p>
-                  </div>
+                <Button onClick={handlePurchase} fullWidth className="mt-6 py-4 text-xl">
+                  Secure tickets
+                </Button>
+                <p className="mt-4 text-center text-xs text-mute">Demo checkout. No payment is taken.</p>
+              </div>
+            )}
 
-                  <div className="relative bg-slate-900 p-6 rounded-2xl text-left overflow-hidden group">
-                     <div className="absolute top-0 right-0 p-32 bg-indigo-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-                     <div className="relative z-10">
-                        <div className="flex justify-between items-start mb-6">
-                           <div>
-                              <p className="text-slate-400 text-xs uppercase tracking-widest mb-1">Event</p>
-                              <p className="text-white font-bold">{event.title}</p>
-                           </div>
-                           <Ticket className="text-indigo-400" />
-                        </div>
-                        <div className="flex gap-4">
-                           <div>
-                              <p className="text-slate-400 text-xs uppercase tracking-widest mb-1">Tickets</p>
-                              <p className="text-white font-mono">{quantity}x {selectedTier.name}</p>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
+            {paymentStep === 'payment' && (
+              <div className="panel flex flex-col items-center justify-center gap-5 px-6 py-24" role="status">
+                <div className="h-12 w-12 animate-spin rounded-full border-4 border-ink-600 border-t-volt" />
+                <p className="font-semibold text-paper">Processing payment...</p>
+              </div>
+            )}
 
-                  <Button onClick={() => navigate('/')} variant="secondary" fullWidth className="py-4">
-                     Browse More Events
-                  </Button>
-                </motion.div>
-              )}
-            </div>
+            {paymentStep === 'success' && (
+              <div role="status">
+                <h2 className="display text-poster-md text-volt">You're in!</h2>
+                <p className="mb-6 mt-2 text-mute">
+                  {userEmail ? `Receipt sent to ${userEmail}` : 'Your booking is confirmed.'}
+                </p>
+
+                <Ticket
+                  title={event.title}
+                  pass={`${quantity}x ${selectedTier.name}`}
+                  poster={event.poster}
+                  code={`EH-${event.id}0${quantity}${selectedTier.id.length}`}
+                  facts={[
+                    { label: 'Date', value: event.date },
+                    { label: 'Doors', value: event.time },
+                    { label: 'Venue', value: event.location },
+                    { label: 'Paid', value: inr(totalPrice) },
+                  ]}
+                />
+
+                <Button onClick={() => navigate('/')} variant="secondary" fullWidth className="mt-8">
+                  Browse more events
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
+
+const Fact = ({ label, value }: { label: string; value: string }) => (
+  <div className="border-b border-ink-600 py-4 pr-4">
+    <dt className="text-sm text-mute">{label}</dt>
+    <dd className="mt-0.5 text-lg font-semibold leading-snug text-paper">{value}</dd>
+  </div>
+);
 
 export default EventDetails;

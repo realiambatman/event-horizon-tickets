@@ -1,28 +1,26 @@
-import React, { useRef, useState, useMemo } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import React, { useState, useMemo } from 'react';
 import { Event } from '../types';
 import { Search } from 'lucide-react';
+import { EventPoster } from '../components/EventPoster';
 
 interface HomeProps {
   events: Event[];
   onEventSelect: (event: Event) => void;
 }
 
+const MARQUEE = ['Live concerts', 'Art exhibitions', 'Tech summits', 'Club nights'];
+
+const scrollToListings = () => {
+  document.getElementById('featured')?.scrollIntoView({ behavior: 'smooth' });
+};
+
 const Home: React.FC<HomeProps> = ({ events, onEventSelect }) => {
-  const containerRef = useRef(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"]
-  });
-
-  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
-
   const filteredEvents = useMemo(() => {
     return events.filter(event => {
-      const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             event.description.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = selectedCategory === 'All' || event.category === selectedCategory;
       return matchesSearch && matchesCategory;
@@ -30,304 +28,134 @@ const Home: React.FC<HomeProps> = ({ events, onEventSelect }) => {
   }, [events, searchQuery, selectedCategory]);
 
   const categories = ['All', ...Array.from(new Set(events.map(e => e.category)))];
+  const highlight = events[0];
+  const understudy = events[1];
 
   return (
-    <div ref={containerRef} className="w-full bg-slate-50 overflow-hidden">
-      
-      {/* --- HERO SECTION --- */}
-      <section className="relative h-[90vh] flex flex-col justify-center px-6 md:px-12 lg:px-24 overflow-hidden">
-        
-        {/* Animated Background Text */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-[0.03]">
-          <h1 className="text-[20vw] font-display font-bold leading-none tracking-tighter text-slate-900 whitespace-nowrap">
-            EVENT HORIZON
+    <div className="w-full overflow-hidden">
+
+      {/* --- HERO: the headline and this week's poster, pasted on the wall --- */}
+      <section className="mx-auto grid max-w-screen-2xl grid-cols-1 items-center gap-12 px-5 pb-16 pt-10 md:px-8 md:pt-16 lg:grid-cols-12 lg:gap-8 lg:pb-24">
+        <div className="lg:col-span-7">
+          <h1 className="display text-[15vw] leading-[0.82] text-paper sm:text-[14vw] lg:text-[9.4vw] 2xl:text-[9rem]">
+            Doors open.
+            <br />
+            Lights down.
+            <br />
+            You're in.
           </h1>
+          <p className="mt-6 max-w-md text-lg leading-relaxed text-mute md:mt-8 md:text-xl">
+            Tickets for concerts, conferences, exhibitions and club nights in Mumbai, Bangalore, Delhi and Pune.
+          </p>
+          <button type="button" onClick={scrollToListings} className="btn btn-primary mt-8 px-7 py-4 text-xl">
+            See what's on
+          </button>
         </div>
 
-        <div className="z-10 max-w-5xl pt-20 md:pt-0">
-          <RevealText className="text-5xl md:text-8xl lg:text-9xl font-display font-bold text-slate-900 tracking-tighter leading-[0.9] mb-6 md:mb-8">
-            EXPERIENCE <br /> THE UNFORGETTABLE
-          </RevealText>
-          
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.8 }}
-            className="flex flex-col md:flex-row gap-8 items-start md:items-center max-w-2xl"
-          >
-            <p className="text-base md:text-xl text-slate-500 font-light leading-relaxed max-w-sm md:max-w-none">
-              Curating the world's most immersive events. From underground neon symphonies to floating art galas.
-            </p>
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                const el = document.getElementById('featured');
-                el?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="bg-slate-900 text-white px-8 py-4 rounded-full font-medium text-sm tracking-wide hover:bg-indigo-600 transition-colors duration-300 whitespace-nowrap w-full md:w-auto"
+        {highlight && (
+          <div className="relative mx-auto w-full max-w-[340px] lg:col-span-5 lg:max-w-[420px]">
+            {understudy && (
+              <div aria-hidden="true" className="absolute inset-0 -translate-x-[9%] translate-y-[3%] -rotate-[8deg] opacity-70">
+                <EventPoster event={understudy} showFooter={false} className="h-full w-full" />
+              </div>
+            )}
+            <div className="relative rotate-3 animate-poster-drop"
             >
-              EXPLORE EVENTS
-            </motion.button>
-          </motion.div>
-        </div>
-
-        {/* Hero Image Parallax with Bug Fix (Rounded Overflow) */}
-        <motion.div 
-          style={{ y: heroY }}
-          className="absolute right-[-10%] top-[10%] w-[60%] h-[80%] z-0 hidden lg:block opacity-90"
-        >
-          {/* Important: Add rounded corners and overflow hidden to the wrapper to clip the gradient */}
-          <div className="relative w-full h-full rounded-l-[4rem] overflow-hidden shadow-2xl">
-            <motion.img 
-              initial={{ scale: 1.2, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 1.2, ease: "easeOut" }}
-              src="https://picsum.photos/seed/architecture/1200/1600" 
-              className="object-cover w-full h-full"
-              alt="" 
-            />
-            {/* Overlay Gradient Now Properly Clipped */}
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-50 via-slate-50/20 to-transparent" />
-          </div>
-        </motion.div>
-      </section>
-
-      {/* --- MARQUEE STRIP --- */}
-      <div className="w-full bg-slate-900 py-6 overflow-hidden flex items-center transform -rotate-1 origin-left z-20 relative shadow-2xl">
-        <motion.div 
-          animate={{ x: [0, -1000] }}
-          transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
-          className="flex whitespace-nowrap gap-12"
-        >
-          {[...Array(6)].map((_, i) => (
-             <span key={i} className="text-4xl md:text-5xl font-display font-bold text-transparent stroke-text tracking-widest opacity-80">
-               LIVE CONCERTS • ART EXHIBITIONS • TECH SUMMITS • 
-             </span>
-          ))}
-        </motion.div>
-      </div>
-
-      <style>{`
-        .stroke-text {
-          -webkit-text-stroke: 1px rgba(255,255,255,0.5);
-        }
-      `}</style>
-
-
-      {/* --- FEATURED EVENT (Magazine Style) --- */}
-      <section id="featured" className="py-32 px-6 md:px-12 lg:px-24">
-        <div className="flex flex-col md:flex-row items-end justify-between mb-16 border-b border-slate-200 pb-6">
-          <RevealText className="text-4xl md:text-5xl font-display font-bold text-slate-900">
-            THIS WEEK'S <span className="text-indigo-600">HIGHLIGHT</span>
-          </RevealText>
-          <p className="text-slate-500 mb-2 font-mono text-sm uppercase tracking-widest">Curated by Event Horizon</p>
-        </div>
-
-        {events.length > 0 && (
-          <div className="relative w-full aspect-[16/9] md:aspect-[21/9] group cursor-pointer overflow-hidden rounded-3xl shadow-xl" onClick={() => onEventSelect(events[0])}>
-             <motion.img 
-               whileHover={{ scale: 1.05 }}
-               transition={{ duration: 0.7 }}
-               src={events[0].image} 
-               alt={events[0].title}
-               className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
-             />
-             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-transparent flex flex-col justify-end p-8 md:p-16">
-                <motion.span 
-                  initial={{ y: 20, opacity: 0 }}
-                  whileInView={{ y: 0, opacity: 1 }}
-                  className="bg-indigo-600 text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-wider w-fit mb-4"
-                >
-                  {events[0].category}
-                </motion.span>
-                <motion.h2 
-                  initial={{ y: 20, opacity: 0 }}
-                  whileInView={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.1 }}
-                  className="text-4xl md:text-7xl font-display font-bold text-white mb-2"
-                >
-                  {events[0].title}
-                </motion.h2>
-                <motion.div 
-                  initial={{ y: 20, opacity: 0 }}
-                  whileInView={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="flex items-center gap-6 text-slate-300 font-medium"
-                >
-                   <span>{events[0].date}</span>
-                   <span className="w-1 h-1 bg-slate-500 rounded-full"/>
-                   <span>{events[0].location}</span>
-                   <span className="w-1 h-1 bg-slate-500 rounded-full"/>
-                   <span className="text-white border-b border-white pb-0.5 group-hover:text-indigo-400 group-hover:border-indigo-400 transition-colors">Book Now</span>
-                </motion.div>
-             </div>
+              <EventPoster event={highlight} onClick={() => onEventSelect(highlight)} />
+              <span className="display pointer-events-none absolute -right-2 -top-5 rotate-6 bg-volt px-3 py-1.5 text-xl leading-none text-ink-950 shadow-print md:-right-5 md:text-2xl">
+                This week's highlight
+              </span>
+            </div>
           </div>
         )}
       </section>
 
-      {/* --- EVENT LIST (With Search & Filter) --- */}
-      <section className="py-20 px-6 md:px-12 lg:px-24 bg-white rounded-t-[4rem] shadow-[0_-20px_40px_rgba(0,0,0,0.02)]">
-         
-         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
-            <h3 className="text-3xl font-display font-bold text-slate-900">Upcoming Events</h3>
-            
-            <div className="flex flex-col md:flex-row gap-4">
-              {/* Search Bar */}
-              <div className="relative">
-                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                 <input 
-                   type="text" 
-                   value={searchQuery}
-                   onChange={(e) => setSearchQuery(e.target.value)}
-                   placeholder="Search events..." 
-                   aria-label="Search events" 
-                   className="pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-full text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 w-full md:w-64 transition-all"
-                 />
-              </div>
-
-              {/* Filter Tabs */}
-              <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
-                 {categories.map(cat => (
-                   <button 
-                     key={cat}
-                     onClick={() => setSelectedCategory(cat)}
-                     className={`px-5 py-3 rounded-full text-sm font-bold whitespace-nowrap transition-all ${
-                       selectedCategory === cat 
-                         ? 'bg-slate-900 text-white shadow-lg' 
-                         : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
-                     }`}
-                   >
-                     {cat}
-                   </button>
-                 ))}
-              </div>
+      {/* --- MARQUEE STRIP --- */}
+      <div aria-hidden="true" className="relative z-10 -mx-2 -rotate-1 overflow-hidden bg-volt py-3 text-ink-950 md:py-4">
+        <div className="flex w-max animate-marquee whitespace-nowrap">
+          {[0, 1].map((half) => (
+            <div key={half} className="flex shrink-0">
+              {[...MARQUEE, ...MARQUEE].map((item, i) => (
+                <span key={i} className="display flex items-center text-3xl leading-none md:text-5xl">
+                  {item}
+                  <span className="mx-6 inline-block h-3 w-3 rotate-45 bg-coral-deep md:mx-10 md:h-4 md:w-4" />
+                </span>
+              ))}
             </div>
-         </div>
-
-         {/* Filtered List */}
-         <div className="grid grid-cols-1 gap-0 min-h-[400px]">
-            {filteredEvents.length > 0 ? (
-              filteredEvents.map((event, index) => (
-                <EventListItem key={event.id} event={event} index={index} onClick={() => onEventSelect(event)} />
-              ))
-            ) : (
-              <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-                 <Search size={48} className="mb-4 opacity-20" />
-                 <p className="text-lg font-medium">No events found matching your criteria.</p>
-                 <button onClick={() => { setSearchQuery(''); setSelectedCategory('All'); }} className="mt-4 text-indigo-600 font-bold hover:underline">
-                   Clear Filters
-                 </button>
-              </div>
-            )}
-         </div>
-      </section>
-
-      {/* --- CTA FOOTER --- */}
-      <section className="py-32 bg-slate-900 text-center px-6">
-          <RevealText className="text-5xl md:text-8xl font-display font-bold text-white mb-8">
-            DON'T MISS OUT
-          </RevealText>
-          <motion.div 
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            <p className="text-slate-400 text-xl max-w-2xl mx-auto mb-10">
-              Join thousands of others discovering the next big experience.
-            </p>
-            <button
-              onClick={() => document.getElementById('featured')?.scrollIntoView({ behavior: 'smooth' })}
-              className="bg-white text-slate-900 px-10 py-4 rounded-full font-bold text-lg hover:bg-indigo-500 hover:text-white transition-all duration-300 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]">
-              Start Your Journey
-            </button>
-          </motion.div>
-      </section>
-
-    </div>
-  );
-};
-
-// --- SUBCOMPONENTS ---
-
-interface RevealTextProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-const RevealText: React.FC<RevealTextProps> = ({ children, className }) => {
-  return (
-    <motion.div
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
-      variants={{
-        hidden: {},
-        visible: {
-          transition: {
-            staggerChildren: 0.1
-          }
-        }
-      }}
-      className={className}
-    >
-       <motion.span className="inline-block" variants={{
-          hidden: { opacity: 0, y: 50, rotateX: 20 },
-          visible: { opacity: 1, y: 0, rotateX: 0, transition: { duration: 0.8, ease: [0.2, 0.65, 0.3, 0.9] } }
-       }}>
-         {children}
-       </motion.span>
-    </motion.div>
-  );
-};
-
-interface EventListItemProps {
-  event: Event;
-  onClick: () => void;
-  index: number;
-}
-
-const EventListItem: React.FC<EventListItemProps> = ({ event, onClick, index }) => {
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-      viewport={{ once: true }}
-      onClick={onClick}
-      className="group relative border-b border-slate-100 py-12 cursor-pointer hover:bg-slate-50 transition-colors duration-500"
-    >
-      <div className="flex flex-col md:flex-row md:items-baseline justify-between gap-6 relative z-10">
-        <div className="flex-1">
-          <span className="block text-xs font-mono text-indigo-600 mb-2 uppercase tracking-wider">{event.category}</span>
-          <h3 className="text-3xl md:text-5xl font-display font-bold text-slate-900 group-hover:text-indigo-900 transition-colors">
-            {event.title}
-          </h3>
-        </div>
-        
-        <div className="flex flex-col md:items-end text-slate-500 group-hover:text-slate-800 transition-colors">
-          <span className="text-xl md:text-2xl font-light">{event.date}</span>
-          <span className="text-sm">{event.location}</span>
-        </div>
-
-        <div className="md:w-40 text-right">
-           <span className="text-xl font-bold text-slate-900 group-hover:scale-110 inline-block transition-transform duration-300">
-             ₹{event.price.toLocaleString('en-IN')}
-           </span>
+          ))}
         </div>
       </div>
 
-      {/* Hover Image Reveal */}
-      <motion.img 
-        src={event.image}
-        alt=""
-        initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
-        whileHover={{ opacity: 1, scale: 1, rotate: 0 }}
-        transition={{ duration: 0.4 }}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-40 object-cover rounded-lg shadow-2xl pointer-events-none z-20 hidden lg:block"
-      />
-    </motion.div>
+      {/* --- LISTINGS (with search & filter) --- */}
+      <section id="featured" className="mx-auto max-w-screen-2xl scroll-mt-20 px-5 pb-24 pt-16 md:px-8 md:pt-24">
+        <div className="mb-10 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+          <div>
+            <h2 className="display text-poster-md text-paper md:text-poster-lg">What's on</h2>
+            <p className="mt-2 text-mute" aria-live="polite">
+              {filteredEvents.length === events.length
+                ? `${events.length} events on sale`
+                : `Showing ${filteredEvents.length} of ${events.length} events`}
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-mute" size={18} aria-hidden="true" />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search events"
+                aria-label="Search events"
+                className="field pl-11 md:w-64"
+              />
+            </div>
+
+            <div role="group" aria-label="Filter by category" className="no-scrollbar -mx-5 flex gap-2 overflow-x-auto px-5 py-1 md:mx-0 md:px-0">
+              {categories.map(cat => (
+                <button
+                  type="button"
+                  key={cat}
+                  aria-pressed={selectedCategory === cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`whitespace-nowrap rounded-stock border px-4 py-3 text-sm font-semibold transition-colors ${
+                    selectedCategory === cat
+                      ? 'border-volt bg-volt text-ink-950'
+                      : 'border-ink-600 text-paper-dim hover:border-paper hover:text-paper'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {filteredEvents.length > 0 ? (
+          <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-x-8">
+            {filteredEvents.map((event) => (
+              <div key={event.id} className="mx-auto w-full max-w-[400px]">
+                <EventPoster event={event} onClick={() => onEventSelect(event)} />
+                <p className="mt-4 text-sm leading-relaxed text-mute">{event.description}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-start rounded-md border border-dashed border-ink-600 px-6 py-14 md:px-10">
+            <p className="display text-poster-sm text-paper">Nothing on the bill</p>
+            <p className="mt-2 text-mute">No events match that search. Try another word or category.</p>
+            <button
+              type="button"
+              onClick={() => { setSearchQuery(''); setSelectedCategory('All'); }}
+              className="btn btn-secondary mt-6"
+            >
+              Clear filters
+            </button>
+          </div>
+        )}
+      </section>
+    </div>
   );
-}
+};
 
 export default Home;

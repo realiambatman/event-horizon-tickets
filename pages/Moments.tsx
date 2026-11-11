@@ -1,6 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Heart, Share2, Maximize2 } from 'lucide-react';
+import { Heart, Share2 } from 'lucide-react';
 
 const MOMENTS = [
   {
@@ -25,7 +24,7 @@ const MOMENTS = [
     title: 'Solo Performance',
     photographer: 'Davide O.',
     cols: 1,
-    rows: 1,
+    rows: 2,
   },
   {
     id: 4,
@@ -33,7 +32,7 @@ const MOMENTS = [
     title: 'Laser Symphony',
     photographer: 'TechVis',
     cols: 1,
-    rows: 2,
+    rows: 1,
   },
   {
     id: 5,
@@ -56,91 +55,83 @@ const MOMENTS = [
     image: 'https://picsum.photos/seed/art7/800/1000',
     title: 'Digital Gallery',
     photographer: 'Artsy Studio',
-    cols: 1,
-    rows: 2,
+    cols: 2,
+    rows: 1,
   },
 ];
 
+// Duotone inks, cycled across the wall so neighbouring prints differ.
+const INKS = ['bg-coral', 'bg-magenta', 'bg-volt'];
+
 const Moments: React.FC = () => {
   return (
-    <motion.div 
-      initial={{ opacity: 0 }} 
-      animate={{ opacity: 1 }} 
-      exit={{ opacity: 0 }}
-      className="w-full"
-    >
-      <header className="mb-20 text-center">
-        <motion.p 
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="text-indigo-600 font-mono text-sm uppercase tracking-widest mb-4"
-        >
-          Archive 2024
-        </motion.p>
-        <motion.h1 
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="text-6xl md:text-9xl font-display font-bold text-slate-900 tracking-tighter"
-        >
-          CAPTURED<br/><span className="text-slate-200">MOMENTS</span>
-        </motion.h1>
+    <div className="w-full">
+      <header className="mb-10 md:mb-16">
+        <h1 className="display text-[19vw] leading-[0.82] text-paper sm:text-poster-xl">
+          Captured
+          <br />
+          moments
+        </h1>
+        <p className="mt-4 text-lg text-mute">Archive 2024</p>
       </header>
 
       {/* Masonry Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-[200px]">
+      <ul className="grid grid-flow-dense auto-rows-[220px] grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-4">
         {MOMENTS.map((item, i) => (
-          <motion.div
+          <li
             key={item.id}
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1, duration: 0.8 }}
-            viewport={{ once: true }}
-            className={`relative group rounded-3xl overflow-hidden cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500 ${
-              item.cols === 2 ? 'md:col-span-2' : 'md:col-span-1'
-            } ${item.rows === 2 ? 'row-span-2' : 'row-span-1'}`}
+            className={`group relative overflow-hidden rounded-stock bg-ink-800 ${
+              item.cols === 2 ? 'sm:col-span-2' : ''
+            } ${item.rows === 2 ? 'row-span-2' : ''}`}
           >
-            <img 
-              src={item.image} 
-              alt={item.title} 
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            {/* Dot screen shown while the photo loads, or if it never does. */}
+            <div aria-hidden="true" className="halftone absolute inset-0 text-ink-600" />
+            {/* Photo printed as a two-ink duotone: midnight shadows, one hot highlight. */}
+            <img
+              src={item.image}
+              alt={item.title}
+              loading="lazy"
+              decoding="async"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              className="absolute inset-0 h-full w-full object-cover grayscale contrast-125 transition-transform duration-500 ease-snap group-hover:scale-105"
             />
-            
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-               <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                  <h3 className="text-white font-display font-bold text-2xl">{item.title}</h3>
-                  <p className="text-slate-300 text-sm font-medium">by {item.photographer}</p>
-                  
-                  <div className="flex items-center gap-4 mt-4">
-                     <button className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white hover:text-red-500 transition-colors">
-                        <Heart size={18} />
-                     </button>
-                     <button className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white hover:text-indigo-600 transition-colors">
-                        <Share2 size={18} />
-                     </button>
-                  </div>
-               </div>
-            </div>
+            <div aria-hidden="true" className={`absolute inset-0 mix-blend-multiply ${INKS[i % INKS.length]}`} />
+            <div aria-hidden="true" className="absolute inset-0 bg-ink-800 mix-blend-lighten" />
+            <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-ink-950 via-ink-950/70 to-transparent" />
 
-            {/* Top Right Icon */}
-            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-               <div className="p-2 bg-black/20 backdrop-blur-sm rounded-full text-white">
-                  <Maximize2 size={16} />
-               </div>
+            <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 md:p-5">
+              <div className="min-w-0">
+                <h2 className="display text-3xl leading-[0.9] text-paper">{item.title}</h2>
+                <p className="mt-1 text-sm font-medium text-paper-dim">by {item.photographer}</p>
+              </div>
+              <div className="flex shrink-0 gap-2">
+                <button
+                  type="button"
+                  aria-label={`Like ${item.title}`}
+                  className="flex h-10 w-10 items-center justify-center rounded-stock bg-ink-950/70 text-paper transition-colors hover:bg-coral hover:text-ink-950"
+                >
+                  <Heart size={18} />
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Share ${item.title}`}
+                  className="flex h-10 w-10 items-center justify-center rounded-stock bg-ink-950/70 text-paper transition-colors hover:bg-volt hover:text-ink-950"
+                >
+                  <Share2 size={18} />
+                </button>
+              </div>
             </div>
-          </motion.div>
+          </li>
         ))}
-      </div>
+      </ul>
 
-      <div className="mt-24 text-center">
-         <p className="text-slate-400 text-sm font-medium mb-4">View complete gallery on Instagram</p>
-         <button className="text-indigo-600 font-bold hover:text-slate-900 transition-colors border-b border-indigo-600 hover:border-slate-900 pb-0.5">
-            @EventHorizon.Live
-         </button>
-      </div>
-    </motion.div>
+      <p className="mt-14 text-mute">
+        View complete gallery on Instagram{' '}
+        <button type="button" className="font-bold text-volt underline-offset-4 hover:underline">
+          @EventHorizon.Live
+        </button>
+      </p>
+    </div>
   );
 };
 
