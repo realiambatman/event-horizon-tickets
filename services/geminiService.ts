@@ -13,7 +13,7 @@ export const generateEventHype = async (eventTitle: string, baseDescription: str
   try {
     const model = 'gemini-2.5-flash';
     const prompt = `
-      You are a creative copywriter for a futuristic, cyberpunk-themed event platform called "Floating Worlds".
+      You are a creative copywriter for a futuristic, cyberpunk-themed event platform called "Event Horizon".
       Write a short, immersive, and cinematic paragraph (max 60 words) describing the event titled "${eventTitle}".
       Use words related to light, sound, immersion, and future.
       Base context: ${baseDescription}.

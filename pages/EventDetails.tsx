@@ -1,13 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Event, TicketTier } from '../types';
 import { TICKET_TIERS, MOCK_EVENTS } from '../constants';
-import { Card, Button, Badge } from '../components/UI';
-import { ArrowLeft, Clock, MapPin, Users, CheckCircle, Download, CreditCard, Ticket, IndianRupee } from 'lucide-react';
+import { Button } from '../components/UI';
+import { ArrowLeft, Clock, MapPin, CheckCircle, CreditCard, Ticket } from 'lucide-react';
 import { generateEventHype } from '../services/geminiService';
 
-const EventDetails: React.FC = () => {
+interface EventDetailsProps {
+  userEmail?: string;
+}
+
+const EventDetails: React.FC<EventDetailsProps> = ({ userEmail }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [event, setEvent] = useState<Event | null>(null);
@@ -15,13 +19,14 @@ const EventDetails: React.FC = () => {
   const [selectedTier, setSelectedTier] = useState<TicketTier>(TICKET_TIERS[0]);
   const [quantity, setQuantity] = useState(1);
   const [paymentStep, setPaymentStep] = useState<'select' | 'payment' | 'success'>('select');
+  const paymentTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     const foundEvent = MOCK_EVENTS.find(e => e.id === id);
     if (foundEvent) {
       setEvent(foundEvent);
     } else {
-      navigate('/'); // Redirect to home if event not found
+      navigate('/', { replace: true }); // Redirect to home if event not found
     }
   }, [id, navigate]);
 
@@ -35,13 +40,16 @@ const EventDetails: React.FC = () => {
     }
   }, [event]);
 
+  useEffect(() => () => clearTimeout(paymentTimer.current), []);
+
   if (!event) return null;
 
   const totalPrice = event.price * selectedTier.price * quantity;
 
+  // Simulated payment: no real gateway is involved.
   const handlePurchase = () => {
     setPaymentStep('payment');
-    setTimeout(() => {
+    paymentTimer.current = setTimeout(() => {
       setPaymentStep('success');
     }, 2000);
   };
@@ -129,10 +137,12 @@ const EventDetails: React.FC = () => {
                   
                   <div className="space-y-4">
                     {TICKET_TIERS.map(tier => (
-                      <div 
+                      <button 
+                        type="button"
                         key={tier.id}
+                        aria-pressed={selectedTier.id === tier.id}
                         onClick={() => setSelectedTier(tier)}
-                        className={`group relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${
+                        className={`group relative w-full text-left p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${
                           selectedTier.id === tier.id 
                             ? 'bg-slate-50 border-indigo-600' 
                             : 'bg-white border-slate-100 hover:border-slate-300'
@@ -151,16 +161,16 @@ const EventDetails: React.FC = () => {
                             <CheckCircle size={14} />
                           </div>
                         )}
-                      </div>
+                      </button>
                     ))}
                   </div>
 
                   <div className="flex items-center justify-between py-4 border-t border-slate-100">
                     <span className="font-medium text-slate-700">Quantity</span>
                     <div className="flex items-center gap-4 bg-slate-50 rounded-full p-1">
-                      <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-600 hover:text-indigo-600">-</button>
+                      <button aria-label="Decrease quantity" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-600 hover:text-indigo-600">-</button>
                       <span className="font-bold w-4 text-center text-slate-900">{quantity}</span>
-                      <button onClick={() => setQuantity(Math.min(10, quantity + 1))} className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-600 hover:text-indigo-600">+</button>
+                      <button aria-label="Increase quantity" onClick={() => setQuantity(Math.min(10, quantity + 1))} className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-600 hover:text-indigo-600">+</button>
                     </div>
                   </div>
 
@@ -201,7 +211,9 @@ const EventDetails: React.FC = () => {
                   
                   <div>
                     <h3 className="text-2xl font-bold text-slate-900 mb-2">You're In!</h3>
-                    <p className="text-slate-500">Receipt sent to email@example.com</p>
+                    <p className="text-slate-500">
+                      {userEmail ? `Receipt sent to ${userEmail}` : 'Your booking is confirmed.'}
+                    </p>
                   </div>
 
                   <div className="relative bg-slate-900 p-6 rounded-2xl text-left overflow-hidden group">
@@ -223,8 +235,8 @@ const EventDetails: React.FC = () => {
                      </div>
                   </div>
 
-                  <Button onClick={() => navigate(-1)} variant="secondary" fullWidth className="py-4">
-                     <Download size={18} className="inline mr-2" /> Download Ticket
+                  <Button onClick={() => navigate('/')} variant="secondary" fullWidth className="py-4">
+                     Browse More Events
                   </Button>
                 </motion.div>
               )}
