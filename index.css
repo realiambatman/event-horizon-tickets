@@ -2,17 +2,182 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background-color: #f8fafc; /* slate-50 */
-  color: #0f172a; /* slate-900 */
-  overflow-x: hidden;
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-ink-900 font-sans text-paper antialiased;
+    overflow-x: hidden;
+    /* Paper grain over the midnight wall. */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  ::selection {
+    @apply bg-volt text-ink-950;
+  }
+
+  :focus-visible {
+    outline: 2px solid theme('colors.volt.DEFAULT');
+    outline-offset: 3px;
+  }
+
+  /* Paper surfaces need a dark ring to stay visible. */
+  .on-paper :focus-visible,
+  .on-paper:focus-visible {
+    outline-color: theme('colors.ink.950');
+  }
 }
 
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+@layer components {
+  /* Display type: condensed, heavy, uppercase like a letterpress bill. */
+  .display {
+    @apply font-display font-black uppercase;
+    letter-spacing: 0.005em;
+  }
+
+  /* Small print: the line of facts under a poster headline. */
+  .smallprint {
+    @apply text-sm font-medium text-mute;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-stock px-5 py-3 font-display text-lg font-extrabold uppercase leading-none tracking-wide transition duration-150 ease-snap;
+  }
+  .btn:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+  .btn-primary {
+    @apply bg-volt text-ink-950 shadow-print-coral;
+  }
+  .btn-primary:hover:not(:disabled) {
+    @apply -translate-x-0.5 -translate-y-0.5 bg-volt;
+    box-shadow: 7px 7px 0 0 theme('colors.coral.DEFAULT');
+  }
+  .btn-primary:active:not(:disabled) {
+    @apply translate-x-1 translate-y-1;
+    box-shadow: 1px 1px 0 0 theme('colors.coral.DEFAULT');
+  }
+  .btn-secondary {
+    @apply border border-ink-500 text-paper;
+  }
+  .btn-secondary:hover:not(:disabled) {
+    @apply border-paper bg-paper text-ink-950;
+  }
+  .btn-ghost {
+    @apply text-mute;
+  }
+  .btn-ghost:hover:not(:disabled) {
+    @apply bg-ink-700 text-paper;
+  }
+  .btn-danger {
+    @apply border border-coral/60 text-coral;
+  }
+  .btn-danger:hover:not(:disabled) {
+    @apply bg-coral text-ink-950;
+  }
+
+  .field {
+    @apply w-full rounded-stock border border-ink-600 bg-ink-950 px-4 py-3 text-base text-paper placeholder:text-ink-500 transition-colors;
+  }
+  .field:hover {
+    @apply border-ink-500;
+  }
+  .field:focus {
+    @apply border-volt outline-none;
+    box-shadow: 0 0 0 1px theme('colors.volt.DEFAULT');
+  }
+  .field-label {
+    @apply mb-1.5 block text-sm font-semibold text-paper-dim;
+  }
+
+  .panel {
+    @apply rounded-md border border-ink-700 bg-ink-800;
+  }
+
+  /* Dashed tear line with a punched notch at each end. */
+  .perf-x {
+    background-image: linear-gradient(to right, currentColor 55%, transparent 0);
+    background-size: 10px 2px;
+    background-repeat: repeat-x;
+    height: 2px;
+  }
+  .perf-y {
+    background-image: linear-gradient(to bottom, currentColor 55%, transparent 0);
+    background-size: 2px 10px;
+    background-repeat: repeat-y;
+    width: 2px;
+  }
 }
 
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .text-outline {
+    color: transparent;
+    -webkit-text-stroke: 1.5px currentColor;
+  }
+
+  /* Halftone dot screen, used on poster art and photo tiles. */
+  .halftone {
+    background-image: radial-gradient(currentColor 1px, transparent 1.4px);
+    background-size: 6px 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Tickets: a paper body and a tear-off stub, with punched notches where the
+   perforation meets the edge. The notches are real cut-outs (mask), so the
+   ticket sits correctly on any background. */
+.ticket {
+  --stub: 7.5rem;
+  --notch: 11px;
+  filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.45));
+}
+.ticket-cut {
+  -webkit-mask-image: radial-gradient(circle var(--notch) at 0 calc(100% - var(--stub)), transparent 97%, #000),
+    radial-gradient(circle var(--notch) at 100% calc(100% - var(--stub)), transparent 97%, #000);
+  mask-image: radial-gradient(circle var(--notch) at 0 calc(100% - var(--stub)), transparent 97%, #000),
+    radial-gradient(circle var(--notch) at 100% calc(100% - var(--stub)), transparent 97%, #000);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+.ticket-stub {
+  height: var(--stub);
+}
+@media (min-width: 768px) {
+  .ticket-wide {
+    --stub: 13.5rem;
+  }
+  .ticket-wide .ticket-cut {
+    -webkit-mask-image: radial-gradient(circle var(--notch) at calc(100% - var(--stub)) 0, transparent 97%, #000),
+      radial-gradient(circle var(--notch) at calc(100% - var(--stub)) 100%, transparent 97%, #000);
+    mask-image: radial-gradient(circle var(--notch) at calc(100% - var(--stub)) 0, transparent 97%, #000),
+      radial-gradient(circle var(--notch) at calc(100% - var(--stub)) 100%, transparent 97%, #000);
+  }
+  .ticket-wide .ticket-stub {
+    height: auto;
+    width: var(--stub);
+  }
 }
