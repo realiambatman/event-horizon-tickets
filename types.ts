@@ -21,21 +21,3 @@ export interface TicketTier {
   benefits: string[];
 }
 
-export interface UserTicket {
-  id: string;
-  eventId: string;
-  tierId: string;
-  purchaseDate: string;
-  qrCode: string; // Mock data
-  status: 'active' | 'used' | 'past';
-}
-
-export enum ViewState {
-  HOME = 'HOME',
-  EVENT_DETAILS = 'EVENT_DETAILS',
-  CHECKOUT = 'CHECKOUT',
-  MY_TICKETS = 'MY_TICKETS',
-  ADMIN = 'ADMIN',
-  MOMENTS = 'MOMENTS',
-  PROFILE = 'PROFILE'
-}

@@ -4,18 +4,16 @@ import { User, Shield, CreditCard, Bell, Camera, ChevronRight } from 'lucide-rea
 import { Button } from '../components/UI';
 
 interface ProfileProps {
-  user: { name: string; email: string } | null;
+  user: { name: string; email: string };
 }
 
 const Profile: React.FC<ProfileProps> = ({ user }) => {
   const [activeTab, setActiveTab] = useState<'general' | 'security' | 'billing'>('general');
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
+    name: user.name,
+    email: user.email,
     bio: 'Digital nomad. Music enthusiast. Event explorer.',
   });
-
-  if (!user) return <div className="p-8 text-center text-slate-500">Please sign in to view your profile.</div>;
 
   return (
     <motion.div 
